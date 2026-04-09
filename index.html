@@ -20,6 +20,16 @@ button{font-weight:bold;cursor:pointer}
 .block{border-radius:8px;padding:4px;color:#14321b;font-weight:bold;font-size:12px}
 .study{background:var(--study)}.rest{background:var(--rest)}.eat{background:var(--eat)}.sleep{background:var(--sleep)}
 .print-header{display:none;text-align:center;margin-bottom:12px}
+.back-btn{display:block;margin:12px auto;background:#40916c;color:white}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:99}
+.modal-box{background:white;border-radius:20px;padding:20px;max-width:320px;text-align:center;border:4px solid #2d6a3f}
+.modal-box h3{margin-top:0}
+.modal-actions{display:flex;gap:10px;justify-content:center;margin-top:14px}
+.btn-yes{background:#2d6a3f;color:white}
+.btn-no{background:#ffd166}
+
 @media print{body{background:white}.controls,button{display:none}.print-header{display:block}}
 </style>
 </head>
@@ -32,29 +42,45 @@ button{font-weight:bold;cursor:pointer}
 <div class="controls">
 <input id="namaAnak" placeholder="Nama Anak">
 <input id="kelas" placeholder="Kelas / Tahun">
-<select id="slot">
-<option value="60">Slot 1 Jam</option>
-<option value="30" selected>Slot 30 Minit</option>
-<option value="15">Slot 15 Minit</option>
-</select>
+<select id="slot"><option value="60">Slot 1 Jam</option><option value="30" selected>Slot 30 Minit</option><option value="15">Slot 15 Minit</option></select>
 <select id="jenis"><option value="study">Belajar</option><option value="rest">Rehat</option><option value="eat">Makan</option><option value="sleep">Tidur</option></select>
-<input id="aktiviti" placeholder="Nama Aktiviti">
+<input id="aktiviti" placeholder="Nama Aktiviti / Subjek">
 <select id="hari"><option>Isnin</option><option>Selasa</option><option>Rabu</option><option>Khamis</option><option>Jumaat</option><option>Sabtu</option><option>Ahad</option></select>
 <input type="time" id="masa">
 <button onclick="isiSlot()">➕ Isi Slot</button>
 </div>
+
+<button class="back-btn" onclick="openModal()">⬅️ Back to Subject Menu</button>
+
 <div class="print-header" id="printHeader"></div>
 <div class="grid-wrap"><div class="grid" id="grid"></div></div>
 <br><button onclick="window.print()">🖨️ Cetak / PDF</button>
 </div>
+
+<!-- Modal -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <h3>🦖 Keluar dari Jadual?</h3>
+    <p>Pastikan jadual anak sudah siap dan disimpan.</p>
+    <div class="modal-actions">
+      <button class="btn-yes" onclick="goOut()">✅ Ya, Keluar</button>
+      <button class="btn-no" onclick="closeModal()">❌ Batal</button>
+    </div>
+  </div>
+</div>
+
 <script>
+function openModal(){document.getElementById('modal').style.display='flex'}
+function closeModal(){document.getElementById('modal').style.display='none'}
+function goOut(){window.location.href='https://www.planetkids.my/'}
+
 const grid=document.getElementById('grid');
 const days=['Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu','Ahad'];
-let data=JSON.parse(localStorage.getItem('grid_dino_v3')||'{}');
+let data=JSON.parse(localStorage.getItem('grid_dino_v7')||'{}');
 let slot=30;
 function buildTimes(){const t=[];for(let h=7;h<=21;h++){for(let m=0;m<60;m+=slot){t.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));}}return t}
 function build(){grid.innerHTML='';document.getElementById('printHeader').innerHTML=`<h2>${namaAnak.value}</h2><p>${kelas.value}</p>`;grid.append(cell('',''));days.forEach(d=>grid.append(cell(d,'day')));
-buildTimes().forEach(t=>{grid.append(cell(t,'time'));days.forEach(d=>{const key=d+'_'+t;const v=data[key];grid.append(cell(v||'', 'cell', key));});});localStorage.setItem('grid_dino_v3',JSON.stringify(data));}
+buildTimes().forEach(t=>{grid.append(cell(t,'time'));days.forEach(d=>{const key=d+'_'+t;const v=data[key];grid.append(cell(v||'', 'cell', key));});});localStorage.setItem('grid_dino_v7',JSON.stringify(data));}
 function cell(txt,cls,key){const c=document.createElement('div');c.className='cell '+cls;if(cls==='cell'){if(txt){const b=document.createElement('div');b.className='block '+txt.type;b.textContent=txt.text;c.appendChild(b);}c.onclick=()=>editCell(key);}else c.textContent=txt;return c}
 function isiSlot(){slot=Number(document.getElementById('slot').value);const key=hari.value+'_'+masa.value;data[key]={text:aktiviti.value,type:jenis.value};build()}
 function editCell(key){if(!key)return;const cur=data[key];const t=prompt('Edit aktiviti (kosongkan untuk padam):',cur?cur.text:'');if(t===null)return;if(t===''){delete data[key];}else{const type=prompt('Jenis (study/rest/eat/sleep):',cur?cur.type:'study');data[key]={text:t,type:type||'study'};}build()}
