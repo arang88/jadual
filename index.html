@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🦖 Jadual Kelas Dinosaur – Grid Lanjutan</title>
+<style>
+:root{--bg1:#c7f0b2;--bg2:#87c77a;--card:#ffffffee;--border:#315b3a;--study:#6ec1ff;--rest:#ffd166;--eat:#ff9f68;--sleep:#b8a1ff;}
+body{margin:0;font-family:'Segoe UI',Comic Sans MS;background:linear-gradient(var(--bg1),var(--bg2))}
+header{text-align:center;padding:20px;background:#2d6a3f;color:#fff}
+.container{padding:16px;max-width:1500px;margin:auto}
+.controls{background:var(--card);padding:16px;border-radius:18px;border:3px solid var(--border);display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+input,select,button{padding:10px;border-radius:12px;border:2px solid #7fb28a;font-size:14px}
+button{font-weight:bold;cursor:pointer}
+.grid-wrap{margin-top:20px;overflow-x:auto}
+.grid{display:grid;grid-template-columns:80px repeat(7,1fr);background:var(--card);border:3px solid var(--border);border-radius:18px;min-width:1100px}
+.cell{border:1px solid #cfe6d5;padding:4px;font-size:12px;min-height:40px;cursor:pointer}
+.time{background:#e9f5ec;font-weight:bold;text-align:center;cursor:default}
+.day{background:#d8f3dc;font-weight:bold;text-align:center;cursor:default}
+.block{border-radius:8px;padding:4px;color:#14321b;font-weight:bold;font-size:12px}
+.study{background:var(--study)}.rest{background:var(--rest)}.eat{background:var(--eat)}.sleep{background:var(--sleep)}
+.print-header{display:none;text-align:center;margin-bottom:12px}
+@media print{body{background:white}.controls,button{display:none}.print-header{display:block}}
+</style>
+</head>
+<body>
+<header>
+<h1>🦖 Jadual Kelas Dinosaur</h1>
+<p>Grid Penuh • Klik Edit • Slot 15 / 30 / 60 Minit</p>
+</header>
+<div class="container">
+<div class="controls">
+<input id="namaAnak" placeholder="Nama Anak">
+<input id="kelas" placeholder="Kelas / Tahun">
+<select id="slot">
+<option value="60">Slot 1 Jam</option>
+<option value="30" selected>Slot 30 Minit</option>
+<option value="15">Slot 15 Minit</option>
+</select>
+<select id="jenis"><option value="study">Belajar</option><option value="rest">Rehat</option><option value="eat">Makan</option><option value="sleep">Tidur</option></select>
+<input id="aktiviti" placeholder="Nama Aktiviti">
+<select id="hari"><option>Isnin</option><option>Selasa</option><option>Rabu</option><option>Khamis</option><option>Jumaat</option><option>Sabtu</option><option>Ahad</option></select>
+<input type="time" id="masa">
+<button onclick="isiSlot()">➕ Isi Slot</button>
+</div>
+<div class="print-header" id="printHeader"></div>
+<div class="grid-wrap"><div class="grid" id="grid"></div></div>
+<br><button onclick="window.print()">🖨️ Cetak / PDF</button>
+</div>
+<script>
+const grid=document.getElementById('grid');
+const days=['Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu','Ahad'];
+let data=JSON.parse(localStorage.getItem('grid_dino_v3')||'{}');
+let slot=30;
+function buildTimes(){const t=[];for(let h=7;h<=21;h++){for(let m=0;m<60;m+=slot){t.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));}}return t}
+function build(){grid.innerHTML='';document.getElementById('printHeader').innerHTML=`<h2>${namaAnak.value}</h2><p>${kelas.value}</p>`;grid.append(cell('',''));days.forEach(d=>grid.append(cell(d,'day')));
+buildTimes().forEach(t=>{grid.append(cell(t,'time'));days.forEach(d=>{const key=d+'_'+t;const v=data[key];grid.append(cell(v||'', 'cell', key));});});localStorage.setItem('grid_dino_v3',JSON.stringify(data));}
+function cell(txt,cls,key){const c=document.createElement('div');c.className='cell '+cls;if(cls==='cell'){if(txt){const b=document.createElement('div');b.className='block '+txt.type;b.textContent=txt.text;c.appendChild(b);}c.onclick=()=>editCell(key);}else c.textContent=txt;return c}
+function isiSlot(){slot=Number(document.getElementById('slot').value);const key=hari.value+'_'+masa.value;data[key]={text:aktiviti.value,type:jenis.value};build()}
+function editCell(key){if(!key)return;const cur=data[key];const t=prompt('Edit aktiviti (kosongkan untuk padam):',cur?cur.text:'');if(t===null)return;if(t===''){delete data[key];}else{const type=prompt('Jenis (study/rest/eat/sleep):',cur?cur.type:'study');data[key]={text:t,type:type||'study'};}build()}
+build();
+</script>
+</body>
+</html>
